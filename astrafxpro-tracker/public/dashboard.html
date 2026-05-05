@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AstraFXPro · Payment Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#f0a500;--gold-dim:rgba(240,165,0,0.1);--navy:#060d1a;--navy2:#0c1727;
+  --card:#0f1d30;--off:#e8e4da;--muted:rgba(232,228,218,0.5);
+  --green:#16a34a;--red:#e03b3b;--blue:#3b82f6;--purple:#8b5cf6;
+  --border:rgba(255,255,255,0.07);
+}
+html{scroll-behavior:smooth}
+body{font-family:"DM Sans",sans-serif;background:var(--navy);color:var(--off);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* LOGIN */
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--navy);padding:20px}
+.login-box{background:var(--card);border:1px solid rgba(240,165,0,0.2);border-radius:24px;padding:44px 36px;width:100%;max-width:400px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,0.6)}
+.login-logo{font-family:"Bebas Neue",sans-serif;font-size:32px;letter-spacing:4px;color:var(--gold);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:32px}
+.login-box input{width:100%;background:rgba(255,255,255,0.05);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--off);font-size:15px;font-family:"DM Sans",sans-serif;outline:none;text-align:center;letter-spacing:3px;margin-bottom:12px}
+.login-box input:focus{border-color:var(--gold)}
+.login-btn{width:100%;background:linear-gradient(135deg,#f0a500,#d97706);color:#fff;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:"DM Sans",sans-serif;letter-spacing:.5px}
+.login-err{color:var(--red);font-size:13px;margin-top:8px;display:none}
+
+/* APP */
+#app{display:none}
+nav{background:rgba(6,13,26,0.97);border-bottom:1px solid rgba(240,165,0,0.12);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.nav-logo{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:3px;color:var(--gold)}
+.nav-logo span{color:#fff}
+.nav-right{display:flex;align-items:center;gap:12px}
+.refresh-btn{background:var(--gold-dim);border:1px solid rgba(240,165,0,0.25);color:var(--gold);padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:background .2s}
+.refresh-btn:hover{background:rgba(240,165,0,0.2)}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--green);background:rgba(22,163,74,0.12);border:1px solid rgba(22,163,74,0.25);padding:5px 12px;border-radius:20px}
+.live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+main{max-width:1400px;margin:0 auto;padding:28px 20px}
+.page-title{font-family:"Bebas Neue",sans-serif;font-size:38px;letter-spacing:2px;color:#fff;margin-bottom:4px}
+.page-sub{font-size:14px;color:var(--muted);margin-bottom:28px}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 18px;position:relative;overflow:hidden;transition:border-color .2s}
+.stat-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
+.stat-card.gold::before{background:var(--gold)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.red::before{background:var(--red)}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card.purple::before{background:var(--purple)}
+.stat-card.muted::before{background:rgba(255,255,255,0.15)}
+.stat-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.stat-value{font-family:"Bebas Neue",sans-serif;font-size:40px;line-height:1;letter-spacing:1px;color:#fff}
+.stat-value.revenue{color:var(--gold)}
+.stat-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:32px;opacity:.12}
+
+/* CONVERSION BAR */
+.conv-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 24px;margin-bottom:28px}
+.conv-title{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+.funnel{display:flex;gap:0;align-items:stretch;border-radius:10px;overflow:hidden;height:44px}
+.funnel-step{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:.5px;text-align:center;transition:flex .6s ease}
+.funnel-step.f-lead{background:rgba(59,130,246,0.6);color:#fff}
+.funnel-step.f-init{background:rgba(139,92,246,0.6);color:#fff}
+.funnel-step.f-success{background:rgba(22,163,74,0.7);color:#fff}
+.funnel-step.f-failed{background:rgba(224,59,59,0.6);color:#fff}
+.funnel-step.f-abandoned{background:rgba(255,255,255,0.15);color:var(--muted)}
+.funnel-labels{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap}
+.fl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.fl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* TABLE */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.section-title{font-family:"Bebas Neue",sans-serif;font-size:26px;letter-spacing:1.5px;color:#fff}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filter-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;font-family:"DM Sans",sans-serif}
+.filter-btn.active,.filter-btn:hover{background:var(--gold-dim);border-color:rgba(240,165,0,0.35);color:var(--gold)}
+.export-btn{background:var(--gold);color:var(--navy);border:none;padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:"DM Sans",sans-serif}
+
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:28px}
+table{width:100%;border-collapse:collapse}
+thead tr{background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border)}
+th{text-align:left;padding:13px 16px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.td-name{font-weight:600;color:#fff}
+.td-phone,.td-email{color:var(--muted);font-size:12px}
+.td-amount{font-weight:700;color:var(--gold)}
+.td-coupon{font-size:11px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(240,165,0,0.25);padding:2px 8px;border-radius:10px;display:inline-block}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.s-lead{background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.25)}
+.s-initiated{background:rgba(139,92,246,0.12);color:#a78bfa;border:1px solid rgba(139,92,246,0.25)}
+.s-success{background:rgba(22,163,74,0.12);color:#4ade80;border:1px solid rgba(22,163,74,0.25)}
+.s-failed{background:rgba(224,59,59,0.12);color:#f87171;border:1px solid rgba(224,59,59,0.25)}
+.s-abandoned{background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid rgba(255,255,255,0.1)}
+.td-time{font-size:11px;color:var(--muted)}
+
+/* ACTIVITY FEED */
+.feed-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:28px}
+.feed-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1.5px;color:#fff;margin-bottom:16px}
+.feed-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}
+.feed-item{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04)}
+.feed-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.feed-content{flex:1;min-width:0}
+.feed-who{font-size:13px;font-weight:600;color:#fff}
+.feed-detail{font-size:11px;color:var(--muted);margin-top:2px}
+.feed-time{font-size:10px;color:rgba(255,255,255,0.2);white-space:nowrap;flex-shrink:0;margin-top:3px}
+
+.empty-state{text-align:center;padding:48px;color:var(--muted);font-size:14px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  th:nth-child(4),td:nth-child(4),th:nth-child(5),td:nth-child(5){display:none}
+  .page-title{font-size:28px}
+  nav{padding:12px 16px}
+  main{padding:20px 14px}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  th:nth-child(3),td:nth-child(3){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">ASTRA<span>FX</span>PRO</div>
+    <div class="login-sub">Payment Tracking Dashboard</div>
+    <input type="password" id="pwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()"/>
+    <button class="login-btn" onclick="login()">🔐 Access Dashboard</button>
+    <div class="login-err" id="loginErr">Wrong password. Try again.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="app">
+  <nav>
+    <div class="nav-logo">ASTRA<span>FX</span>PRO <span style="font-size:13px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400;letter-spacing:1px">Dashboard</span></div>
+    <div class="nav-right">
+      <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+      <button class="refresh-btn" onclick="loadStats()">⟳ Refresh</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="page-title">Payment Tracker</div>
+    <div class="page-sub" id="lastUpdated">Loading data…</div>
+
+    <!-- STATS GRID -->
+    <div class="stats-grid">
+      <div class="stat-card gold">
+        <div class="stat-label">Total Leads</div>
+        <div class="stat-value" id="s-leads">—</div>
+        <div class="stat-icon">🎯</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Initiated</div>
+        <div class="stat-value" id="s-initiated">—</div>
+        <div class="stat-icon">💳</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Successful</div>
+        <div class="stat-value" id="s-success">—</div>
+        <div class="stat-icon">✅</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Failed</div>
+        <div class="stat-value" id="s-failed">—</div>
+        <div class="stat-icon">❌</div>
+      </div>
+      <div class="stat-card muted">
+        <div class="stat-label">Abandoned</div>
+        <div class="stat-value" id="s-abandoned">—</div>
+        <div class="stat-icon">🚪</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Revenue</div>
+        <div class="stat-value revenue" id="s-revenue">—</div>
+        <div class="stat-icon">₹</div>
+      </div>
+    </div>
+
+    <!-- CONVERSION FUNNEL -->
+    <div class="conv-section">
+      <div class="conv-title">Conversion Funnel</div>
+      <div class="funnel" id="funnelBar">
+        <div class="funnel-step f-lead" id="f-lead" style="flex:1">Leads</div>
+        <div class="funnel-step f-init" id="f-init" style="flex:1">Initiated</div>
+        <div class="funnel-step f-success" id="f-success" style="flex:1">Paid</div>
+        <div class="funnel-step f-failed" id="f-failed" style="flex:1">Failed</div>
+        <div class="funnel-step f-abandoned" id="f-abandoned" style="flex:1">Abandoned</div>
+      </div>
+      <div class="funnel-labels">
+        <div class="fl"><div class="fl-dot" style="background:rgba(59,130,246,0.7)"></div> Leads</div>
+        <div class="fl"><div class="fl-dot" style="background:rgba(139,92,246,0.7)"></div> Initiated</div>
+        <div class="fl"><div class="fl-dot" style="background:rgba(22,163,74,0.7)"></div> Paid</div>
+        <div class="fl"><div class="fl-dot" style="background:rgba(224,59,59,0.6)"></div> Failed</div>
+        <div class="fl"><div class="fl-dot" style="background:rgba(255,255,255,0.15)"></div> Abandoned</div>
+        <div class="fl" id="convRate" style="margin-left:auto;font-weight:700;color:var(--gold)"></div>
+      </div>
+    </div>
+
+    <!-- USER TABLE -->
+    <div class="section-header">
+      <div class="section-title">All Leads & Payments</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div class="filters">
+          <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+          <button class="filter-btn" onclick="setFilter('lead',this)">Leads</button>
+          <button class="filter-btn" onclick="setFilter('initiated',this)">Initiated</button>
+          <button class="filter-btn" onclick="setFilter('success',this)">Paid ✅</button>
+          <button class="filter-btn" onclick="setFilter('failed',this)">Failed ❌</button>
+          <button class="filter-btn" onclick="setFilter('abandoned',this)">Abandoned 🚪</button>
+        </div>
+        <button class="export-btn" onclick="exportCSV()">⬇ CSV</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Amount</th>
+            <th>Coupon</th>
+            <th>Status</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <tr><td colspan="7" class="empty-state">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ACTIVITY FEED -->
+    <div class="feed-section">
+      <div class="feed-title">Live Activity Feed</div>
+      <div class="feed-list" id="feedList">
+        <div class="empty-state">Loading activity…</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const BASE = window.location.origin;
+let token = localStorage.getItem("afxp_token") || "";
+let allUsers = [];
+let currentFilter = "all";
+
+const statusLabel = { lead:"🎯 LEAD", initiated:"💳 INITIATED", success:"✅ PAID", failed:"❌ FAILED", abandoned:"🚪 ABANDONED" };
+const statusClass = { lead:"s-lead", initiated:"s-initiated", success:"s-success", failed:"s-failed", abandoned:"s-abandoned" };
+const feedIcons = { lead:"🎯", initiated:"💳", success:"✅", failed:"❌", abandoned:"🚪" };
+
+function login() {
+  const pw = document.getElementById("pwInput").value;
+  fetch(BASE + "/api/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({password:pw}) })
+    .then(r => r.json()).then(d => {
+      if (d.ok) {
+        token = d.token;
+        localStorage.setItem("afxp_token", token);
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("app").style.display = "block";
+        loadStats();
+        setInterval(loadStats, 30000);
+      } else {
+        document.getElementById("loginErr").style.display = "block";
+      }
+    }).catch(() => { document.getElementById("loginErr").style.display = "block"; });
+}
+
+function loadStats() {
+  fetch(BASE + "/api/stats", { headers: { "x-auth-token": token } })
+    .then(r => { if (r.status === 401) { logout(); throw new Error("Unauthorized"); } return r.json(); })
+    .then(d => renderDashboard(d))
+    .catch(e => console.error("Stats error:", e));
+}
+
+function renderDashboard(d) {
+  const s = d.summary;
+  document.getElementById("s-leads").textContent = s.leads;
+  document.getElementById("s-initiated").textContent = s.initiated;
+  document.getElementById("s-success").textContent = s.success;
+  document.getElementById("s-failed").textContent = s.failed;
+  document.getElementById("s-abandoned").textContent = s.abandoned;
+  document.getElementById("s-revenue").textContent = "₹" + parseInt(s.revenue).toLocaleString("en-IN");
+  document.getElementById("lastUpdated").textContent = "Last updated: " + new Date().toLocaleTimeString("en-IN");
+
+  // Funnel
+  const total = Math.max(s.leads, 1);
+  document.getElementById("f-lead").style.flex = s.leads;
+  document.getElementById("f-init").style.flex = s.initiated;
+  document.getElementById("f-success").style.flex = Math.max(s.success, 0.1);
+  document.getElementById("f-failed").style.flex = Math.max(s.failed, 0.1);
+  document.getElementById("f-abandoned").style.flex = Math.max(s.abandoned, 0.1);
+  const convRate = s.leads > 0 ? ((s.success / s.leads) * 100).toFixed(1) : "0.0";
+  document.getElementById("convRate").textContent = `Conversion: ${convRate}%`;
+
+  allUsers = d.users;
+  renderTable();
+  renderFeed(d.recentEvents);
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderTable();
+}
+
+function renderTable() {
+  const filtered = currentFilter === "all" ? allUsers : allUsers.filter(u => u.status === currentFilter);
+  const tbody = document.getElementById("userTableBody");
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No records found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map((u, i) => `
+    <tr>
+      <td style="color:var(--muted);font-size:12px">${i+1}</td>
+      <td><div class="td-name">${esc(u.name || "—")}</div></td>
+      <td>
+        <div class="td-phone">${esc(u.phone || "—")}</div>
+        <div class="td-email">${esc(u.email || "—")}</div>
+      </td>
+      <td class="td-amount">${u.amount ? "₹" + parseInt(u.amount).toLocaleString("en-IN") : "—"}</td>
+      <td>${u.coupon ? `<span class="td-coupon">${esc(u.coupon)}</span>` : '<span style="color:var(--muted);font-size:12px">—</span>'}</td>
+      <td><span class="status-badge ${statusClass[u.status] || ""}">${statusLabel[u.status] || u.status}</span></td>
+      <td class="td-time">${formatTime(u.lastSeen)}</td>
+    </tr>
+  `).join("");
+}
+
+function renderFeed(events) {
+  const list = document.getElementById("feedList");
+  if (!events || events.length === 0) { list.innerHTML = '<div class="empty-state">No activity yet.</div>'; return; }
+  list.innerHTML = events.slice(0, 30).map(e => `
+    <div class="feed-item">
+      <div class="feed-icon">${feedIcons[e.type] || "📌"}</div>
+      <div class="feed-content">
+        <div class="feed-who">${esc(e.name || "Anonymous")} — ${statusLabel[e.type] || e.type}</div>
+        <div class="feed-detail">${esc(e.phone || "")}${e.phone && e.email ? " · " : ""}${esc(e.email || "")}${e.amount ? " · ₹" + e.amount : ""}${e.coupon ? " · " + e.coupon : ""}</div>
+      </div>
+      <div class="feed-time">${formatTime(e.timestamp)}</div>
+    </div>
+  `).join("");
+}
+
+function exportCSV() {
+  const data = currentFilter === "all" ? allUsers : allUsers.filter(u => u.status === currentFilter);
+  const headers = ["Name","Phone","Email","Amount","Coupon","Status","Last Seen"];
+  const rows = data.map(u => [u.name||"",u.phone||"",u.email||"",u.amount||"",u.coupon||"",u.status,u.lastSeen].map(v => `"${v}"`).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = `astrafxpro_leads_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+function formatTime(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  return d.toLocaleString("en-IN", {day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:true});
+}
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function logout() { localStorage.removeItem("afxp_token"); location.reload(); }
+
+// Auto-login if token exists
+if (token) {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  loadStats();
+  setInterval(loadStats, 30000);
+}
+</script>
+</body>
+</html>
